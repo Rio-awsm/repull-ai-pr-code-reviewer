@@ -1,10 +1,14 @@
+import Logout from "@/components/shared/logout";
 import { Button } from "@/components/ui/button";
+import { requireAuth } from "@/modules/auth/auth-utils";
 
-export default function Home() {
+export default async function Home() {
+  await requireAuth();
   return (
-   <div>
-    <Button className="bg-primary">HELLO</Button>
-    <h1 className="text-primary">hdshih</h1>
-   </div>
+    <div>
+      <Logout>
+        <Button>Logout</Button>
+      </Logout>
+    </div>
   );
 }
