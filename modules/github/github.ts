@@ -26,50 +26,50 @@ export const getGithubToken = async () => {
   return account.accessToken;
 };
 
-interface contributiondata {
-  user: {
-    contributionCollection: {
-      contributionCalendar: {
-        totalContributions: number;
-        weeks: {
-          contributionDays: {
-            contributionCount: number;
-            data: string | Date;
-            color: string;
-          };
-        };
-      };
-    };
-  };
-}
+// interface contributiondata {
+//   user: {
+//     contributionCollection: {
+//       contributionCalendar: {
+//         totalContributions: number;
+//         weeks: {
+//           contributionDays: {
+//             contributionCount: number;
+//             date: string | Date;
+//             color: string;
+//           };
+//         };
+//       };
+//     };
+//   };
+// }
 
 export async function fetchUserContribution(token: string, username: string) {
   const octokit = new Octokit({ auth: token });
 
   const query = `
-   query($username:String!){
-   user(login:$username) {
-       contributionCollection {
-       contributionCalendar {
-       totalContributions
-       weeks{
-       contributionDays {
-         contributionCount
-         data
-         color
+   query($username: String!) {
+     user(login: $username) {
+       contributionsCollection {
+         contributionCalendar {
+           totalContributions
+           weeks {
+             contributionDays {
+               contributionCount
+               date
+               color
+             }
+           }
+         }
        }
-       }
-       }
-       }
-   }
+     }
    }
    `;
   try {
-    const response: contributiondata = await octokit.graphql(query, {
+    const response: any = await octokit.graphql(query, {
       username,
     });
 
-    return response.user.contributionCollection.contributionCalendar;
+    return response.user.contributionsCollection.contributionCalendar;
   } catch (error) {
     throw error;
   }
