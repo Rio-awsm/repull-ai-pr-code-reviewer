@@ -2,28 +2,28 @@
 
 import { useSession } from "@/lib/auth-client";
 import {
-    BookOpen,
-    GitBranch,
-    GitPullRequest,
-    LogOut,
-    Settings,
-    Star,
-    Text,
+  BookOpen,
+  GitBranch,
+  GitPullRequest,
+  LogOut,
+  Settings,
+  Star,
+  Text,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import {
-    Sidebar,
-    SidebarContent,
-    SidebarFooter,
-    SidebarGroup,
-    SidebarGroupContent,
-    SidebarGroupLabel,
-    SidebarMenu,
-    SidebarMenuButton,
-    SidebarMenuItem,
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
 } from "../ui/sidebar";
 import Logout from "./logout";
 
@@ -66,6 +66,7 @@ const Appsidebar = () => {
   ];
 
   const isActive = (url: string) => {
+    if (url === "/dashboard") return pathname === "/dashboard";
     return pathname === url || pathname.startsWith(url + "/");
   };
 
