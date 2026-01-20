@@ -6,8 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useConnectRepository } from "@/modules/repository/use-connect-repository";
 import { useRepositories } from "@/modules/repository/use-repositories";
-import { ExternalLink, Github, Link2, Search, Star } from "lucide-react";
+import { ExternalLink, Github, Search, Star } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 interface Repository {
@@ -58,6 +59,25 @@ export default function RepositoryPage() {
   } = useRepositories();
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [localConectingId, setLocalConnectingId] = useState<number | null>(
+    null,
+  );
+
+  const { mutate: connectRepo } = useConnectRepository();
+
+  const handleConnect = (repo: Repository) => {
+    setLocalConnectingId(repo.id);
+    connectRepo(
+      {
+        owner: repo.full_name.split("/")[0],
+        repo: repo.name,
+        githubId: repo.id,
+      },
+      {
+        onSettled: () => setLocalConnectingId(null),
+      },
+    );
+  };
 
   // Sentinel ref for infinite scrolling
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
@@ -97,7 +117,7 @@ export default function RepositoryPage() {
         root: null, // viewport
         rootMargin: "250px", // fetch before reaching bottom
         threshold: 0.1,
-      }
+      },
     );
 
     observer.observe(el);
@@ -114,7 +134,9 @@ export default function RepositoryPage() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Repositories</h1>
-          <p className="text-muted-foreground">Manage your repositories here.</p>
+          <p className="text-muted-foreground">
+            Manage your repositories here.
+          </p>
         </div>
 
         <Button variant="secondary" className="gap-2" asChild>
@@ -143,7 +165,9 @@ export default function RepositoryPage() {
       {isError && (
         <Card className="border-destructive/40">
           <CardHeader>
-            <CardTitle className="text-destructive">Something went wrong</CardTitle>
+            <CardTitle className="text-destructive">
+              Something went wrong
+            </CardTitle>
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground">
             Couldn’t load repositories. Please try again.
@@ -175,7 +199,10 @@ export default function RepositoryPage() {
           ) : (
             <div className="grid gap-4 md:grid-cols-2">
               {filteredRepositories.map((repo: Repository) => (
-                <Card key={repo.id} className="hover:shadow-sm transition-shadow">
+                <Card
+                  key={repo.id}
+                  className="hover:shadow-sm transition-shadow"
+                >
                   <CardHeader className="space-y-2">
                     <div className="flex items-start justify-between gap-3">
                       <div className="space-y-1 min-w-0">
@@ -189,13 +216,6 @@ export default function RepositoryPage() {
                       </div>
 
                       <div className="flex items-center gap-2">
-                        {repo.isConnected && (
-                          <Badge variant="secondary" className="gap-1">
-                            <Link2 className="h-3.5 w-3.5" />
-                            Connected
-                          </Badge>
-                        )}
-
                         <Button variant="outline" size="sm" asChild>
                           <a
                             href={repo.html_url}
@@ -206,6 +226,20 @@ export default function RepositoryPage() {
                             View
                             <ExternalLink className="h-4 w-4" />
                           </a>
+                        </Button>
+
+                        <Button
+                          onClick={() => handleConnect(repo)}
+                          disabled={
+                            localConectingId === repo.id || repo.isConnected
+                          }
+                          variant={repo.isConnected ? "outline" : "default"}
+                        >
+                          {localConectingId === repo.id
+                            ? "Connecting..."
+                            : repo.isConnected
+                              ? "Connected"
+                              : "Connect"}
                         </Button>
                       </div>
                     </div>
