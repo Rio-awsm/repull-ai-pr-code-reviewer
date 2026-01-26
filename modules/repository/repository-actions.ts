@@ -1,5 +1,6 @@
 "use server";
 
+import { inngest } from "@/inngest/client";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/db";
 import { headers } from "next/headers";
@@ -63,9 +64,20 @@ export const connectRepository = async (
     });
   }
 
-  //TODO: CREAMENT REPO COUNT FOR USAGE
+  //TODO: INCREAMENT REPO COUNT FOR USAGE
 
-  //TODO:TRIGGER REPO INDEXING
+  try {
+    await inngest.send({
+      name:"repository.connected",
+      data:{
+        owner,
+        repo,
+        userId:session.user.id
+      }
+    })
+  } catch (error) {
+    console.error("FAILED TO TRIGGER REPOSITY INDEXING",error)
+  }
 
   return webhook;
 };
