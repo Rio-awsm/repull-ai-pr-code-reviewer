@@ -5,6 +5,10 @@ import { auth } from "@/lib/auth";
 import prisma from "@/lib/db";
 import { headers } from "next/headers";
 import { createWebhook, getRepositories } from "../github/github";
+import {
+  canConnectRepository,
+  incrementRepositoryCount,
+} from "../payment/subscription";
 
 export const fetchRepositries = async (
   page: number = 1,
@@ -47,7 +51,10 @@ export const connectRepository = async (
     throw new Error("UNAUTHORIZED");
   }
 
-  //TODO: CHECK IF USER CAN CONNECT MORE REPO
+  const canConnect = await canConnectRepository(session.user.id);
+  if (!canConnect) {
+    throw new Error("REPOSITORY LIMIT REACHED. PLEASE UPGRADE TO PRO");
+  }
 
   const webhook = await createWebhook(owner, repo);
 
@@ -62,21 +69,21 @@ export const connectRepository = async (
         userId: session.user.id,
       },
     });
-  }
 
-  //TODO: INCREAMENT REPO COUNT FOR USAGE
+    await incrementRepositoryCount(session.user.id);
 
-  try {
-    await inngest.send({
-      name:"repository.connected",
-      data:{
-        owner,
-        repo,
-        userId:session.user.id
-      }
-    })
-  } catch (error) {
-    console.error("FAILED TO TRIGGER REPOSITY INDEXING",error)
+    try {
+      await inngest.send({
+        name: "repository.connected",
+        data: {
+          owner,
+          repo,
+          userId: session.user.id,
+        },
+      });
+    } catch (error) {
+      console.error("FAILED TO TRIGGER REPOSITY INDEXING", error);
+    }
   }
 
   return webhook;
